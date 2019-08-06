@@ -52,13 +52,47 @@ Last modification: 10/05/2019
 #include <Adafruit_SSD1306.h>  // Include Adafruit_SSD1306 library to drive the display
 #include <Fonts/FreeMonoBold12pt7b.h>  // Add a custom font
 #include <Fonts/FreeMono9pt7b.h>  // Add a custom font
+#include <RotaryEncoder.h>
+
+#define PIN_A   PB5 //ky-040 clk pin, add 100nF/0.1uF capacitors between pin & ground!!!
+#define PIN_B   PB4 //ky-040 dt  pin, add 100nF/0.1uF capacitors between pin & ground!!!
+#define BUTTON  PB3 //ky-040 sw  pin, add 100nF/0.1uF capacitors between pin & ground!!!
 
 
+
+RotaryEncoder encoder(PIN_A, PIN_B, BUTTON);
 Adafruit_SSD1306 display(128, 64);  // Create display
 
-int number;
+int position = 0;
+
+
+void onRotation() {
+    encoder.readAB();
+    position = encoder.getPosition();
+}
+
+void onButtonPress() {
+    encoder.readPushButton();
+    bool isPressed = encoder.getPushButton();
+    digitalWrite(LED_BUILTIN, !isPressed);
+    if(isPressed){
+        encoder.setPosition(0);
+        onRotation();
+    }
+}
+
 
 void setup() {
+    //Led
+    pinMode(LED_BUILTIN,OUTPUT);
+
+    // Encoder
+    encoder.begin();
+    attachInterrupt(digitalPinToInterrupt(PIN_A), onRotation, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(PIN_B), onRotation, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(BUTTON), onButtonPress, CHANGE);
+
+    //Display
     delay(50);
     display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // Initialize display with the I2C address of 0x3C
     display.clearDisplay();  // Clear the buffer
@@ -68,44 +102,21 @@ void setup() {
     // To override this behavior (so text will run off the right side of the display - useful for
     // scrolling marquee effects), use setTextWrap(false). The normal wrapping behavior is restored
     // with setTextWrap(true).
-    display.dim(0);  //Set brightness (0 is maximun and 1 is a little dim)
+    display.dim(false);
 }
 
 void loop() {
-    for (int x = 0; x < 65; x++) {
-        display.fillRect(0, 0, x, x, WHITE);
-        display.fillRect(128 - x, 64 - x, x, x, WHITE);
-        display.display();
-    }
-    for (int x = 0; x < 65; x++) {
-//        display.clearDisplay();
-        display.fillRect(0, 0, x, x, BLACK);
-        display.fillRect(128 - x, 64 - x, x, x, BLACK);
-        display.display();
-    }
-    display.clearDisplay();
-}
-
-
-/*
-void loop(){
-    number++;  // Increase variable by 1
-
-    if(number > 150)  // If number is greater than 150
-    {
-        number = 0;  // Set number to 0
-    }
+    display.clearDisplay();  // Clear the display so we can refresh
 
     // Convert number into a string, so we can change the text alignment to the right:
     // It can be also used to add or remove decimal numbers.
-    char string[10];  // Create a character array of 10 characters
+    char angleString[10];  // Create a character array of 10 characters
     // Convert float to a string:
-    dtostrf(number, 3, 0, string);  // (<variable>,<amount of digits we are going to use>,<amount of decimal digits>,<string name>)
-
-    display.clearDisplay();  // Clear the display so we can refresh
+    dtostrf(-18 * position, 3, 0, angleString);  // (<variable>,<amount of digits we are going to use>,<amount of decimal digits>,<string name>)
     display.setFont(&FreeMono9pt7b);  // Set a custom font
     display.setTextSize(0);  // Set text size. We are using a custom font so you should always use the text size of 0
 
+/*
 
     // Print text:
     display.setCursor(0, 10);  // (x,y)
@@ -135,20 +146,21 @@ void loop(){
     display.drawRect(79, 0, 49, 27, WHITE);  // Draw rectangle (x,y,width,height,color)
     // It draws from the location to down-right
 
+*/
     display.setFont(&FreeMonoBold12pt7b);  // Set a custom font
 
     // Print variable with left alignment:
-    display.setCursor(83, 20);  // (x,y)
-    display.println(number);  // Text or value to print
+    display.setCursor(5, random(20,22));  // (x,y)
+    display.println(angleString);  // Text or value to print
 
     // Draw rounded rectangle:
-    display.drawRoundRect(79, 37, 49, 27, 8, WHITE);  // Draw rounded rectangle (x,y,width,height,radius,color)
+//    display.drawRoundRect(79, 37, 49, 27, 8, WHITE);  // Draw rounded rectangle (x,y,width,height,radius,color)
     // It draws from the location to down-right
 
     // Print variable with right alignment:
-    display.setCursor(83, 57);  // (x,y)
-    display.println(string);  // Text or value to print
+    display.setCursor(5, random(50,55));  // (x,y)
+    display.println(angleString);  // Text or value to print
 
     display.display();  // Print everything we set previously
 
-}*/
+}
