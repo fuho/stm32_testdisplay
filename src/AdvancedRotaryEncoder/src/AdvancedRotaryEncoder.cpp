@@ -11,35 +11,33 @@
 
 
 
-          The half of the pulses from top to bottom create full state array:  
+           oldAB     newAB      oldABnewAB      Encoder State
+          -------   ---------   --------------  -------------
+            00         00            0000       nothing
+            00         01            0001       CW
+            00         10            0010       CCW
+            00         11            0011       invalid
+            01         00            0100       CCW
+            01         01            0101       nothing
+            01         10            0110       invalid
+            01         11            0111       CW
+            10         00            1000       CW
+            10         01            1001       invalid
+            10         10            1010       nothing
+            10         11            1011       CCW
+            11         00            1100       invalid
+            11         01            1101       CCW
+            11         10            1110       CW
+            11         11            1111       nothing
 
-          oldAB     newA+B      oldABnewAB       Array   Encoder State
-          -------   ---------   --------------   -----   -------------
-            00         00            0000          0     nothing
-            00         01            0001          1     CW,  0x01
-            00         10            0010         -1     CCW, 0x02
-            00         11            0011          0     invalid state
-            01         00            0100         -1     CCW, 0x04
-            01         01            0101          0     nothing
-            01         10            0110          0     invalid state
-            01         11            0111          1     CW, 0x07
-            10         00            1000          1     CW, 0x08
-            10         01            1001          0     invalid state
-            10         10            1010          0     nothing
-            10         11            1011         -1     CCW, 0x0B
-            11         00            1100          0     invalid state
-            11         01            1101         -1     CCW, 0x0D 
-            11         10            1110          1     CW,  0x0E
-            11         11            1111          0     nothing
-
-          - CW  states 0b0001, 0b0111, 0b1000, 0b1110
-          - CCW states 0b0010, 0b0100, 0b1011, 0b1101
+          - CW:     0b0001, 0b0111, 0b1000, 0b1110
+          - CCW:    0b0010, 0b0100, 0b1011, 0b1101
 */
 /***************************************************************************************************/
 
 #include "AdvancedRotaryEncoder.h"
 
-std::vector<AdvancedRotaryEncoder*> AdvancedRotaryEncoder::instances;
+std::vector<AdvancedRotaryEncoder *> AdvancedRotaryEncoder::instances;
 
 AdvancedRotaryEncoder::AdvancedRotaryEncoder(int pinA, int pinB, int pinButton) {
     this->pinA = pinA;
@@ -51,22 +49,22 @@ AdvancedRotaryEncoder::AdvancedRotaryEncoder(int pinA, int pinB, int pinButton) 
 }
 
 void AdvancedRotaryEncoder::staticInterruptHandler() {
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(100);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(100);
 
-    digitalWrite(LED_BUILTIN,LOW);
-    delay(10);
-    digitalWrite(LED_BUILTIN,HIGH);
 
-/*
-    if(AdvancedRotaryEncoder::encoderInstances.empty()){
+    // If this commented out section enabled the LED stays lit
+    /*
+    if (AdvancedRotaryEncoder::instances.empty()) {
         return;
     }
-*/
 
     for (auto &element : AdvancedRotaryEncoder::instances) {
         element->update();
     }
-
-
+    */
 }
 
 
@@ -86,11 +84,6 @@ void AdvancedRotaryEncoder::stop() {
     detachInterrupt(digitalPinToInterrupt(this->pinA));
     detachInterrupt(digitalPinToInterrupt(this->pinB));
     detachInterrupt(digitalPinToInterrupt(this->pinButton));
-}
-
-
-int32_t AdvancedRotaryEncoder::getValue() {
-    return this->position;
 }
 
 double_t AdvancedRotaryEncoder::getAngle() {
@@ -117,18 +110,18 @@ void AdvancedRotaryEncoder::removeListener() {
 void AdvancedRotaryEncoder::update() {
     noInterrupts();
 
-    digitalWrite(LED_BUILTIN,LOW);
+    digitalWrite(LED_BUILTIN, LOW);
     delay(10);
-    digitalWrite(LED_BUILTIN,HIGH);
+    digitalWrite(LED_BUILTIN, HIGH);
 
     EncoderEvent event = {None, millis(), micros()};
 
-    bool isButtonPressedNow = ! digitalRead(this->pinButton);
+    bool isButtonPressedNow = !digitalRead(this->pinButton);
     // Button processing takes precedence
-    if(isButtonPressedNow && ! this->isButtonPressed){
+    if (isButtonPressedNow && !this->isButtonPressed) {
         isButtonPressed = isButtonPressedNow;
         event.eventType = ButtonDown;
-    } else if (! isButtonPressedNow &&  this->isButtonPressed){
+    } else if (!isButtonPressedNow && this->isButtonPressed) {
         event.eventType = ButtonUp;
     } else { // Now since button hasn't changed check for rotation
         this->currentAB = digitalRead(this->pinA) << 1;
@@ -142,7 +135,7 @@ void AdvancedRotaryEncoder::update() {
                 this->angle += 360.0 / this->stepsPerRotation;
                 event.eventType = MoveCW;
                 break;
-            //CCW
+                //CCW
             case 0b0100:
             case 0b1011:
                 this->position--;

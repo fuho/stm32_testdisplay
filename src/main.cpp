@@ -51,8 +51,7 @@ Last modification: 10/05/2019
 #include <Adafruit_GFX.h>  // Include core graphics library for the display
 #include <Adafruit_SSD1306.h>  // Include Adafruit_SSD1306 library to drive the display
 #include <Fonts/FreeMonoBold12pt7b.h>  // Add a custom font
-#include <Fonts/FreeMono9pt7b.h>  // Add a custom font
-#include <AdvancedRotaryEncoder.h>
+#include <AdvancedRotaryEncoder/src/AdvancedRotaryEncoder.h>
 
 #define PIN_A   PB5 //ky-040 clk pin, add 100nF/0.1uF capacitors between pin & ground!!!
 #define PIN_B   PB4 //ky-040 dt  pin, add 100nF/0.1uF capacitors between pin & ground!!!
