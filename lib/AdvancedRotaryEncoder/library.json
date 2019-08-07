@@ -1,0 +1,18 @@
+{
+  "name":        "AdvancedRotaryEncoder",
+  "keywords":    "rotary, encoder, quadrature, ky-040, TimerOne, interrupt, sensor",
+  "description": "Rotary Encoder with interrupts",
+  "authors":
+  {
+    "name":  "fuho",
+    "email": "fuho@protonmail.com"
+  },
+  "repository":
+  {
+    "type": "git",
+    "url":  "https://github.com/fuho/AdvancedRotaryEncoder.git"
+  },
+  "version":    "1.0.0",
+  "frameworks": "arduino",
+  "platforms":  ["ststm32"]
+}
